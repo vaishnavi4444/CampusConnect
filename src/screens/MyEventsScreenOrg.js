@@ -9,7 +9,6 @@ import { EventCard } from '../components';
 import { EventCardSkeleton, EmptyState } from '../components/Loaders';
 import { COLORS, SPACING, FONT_SIZE, FONT_WEIGHT, BORDER_RADIUS } from '../constants/theme';
 
-// ─── Status config ────────────────────────────────────────────────────────────
 const STATUS_TABS = [
   {
     key: 'PUBLISHED',
@@ -45,7 +44,6 @@ const STATUS_TABS = [
   },
 ];
 
-// ─── Status Banner shown above each card ─────────────────────────────────────
 function StatusBanner({ status }) {
   const cfg = STATUS_TABS.find((s) => s.key === status) || STATUS_TABS[0];
   const messages = {
@@ -82,7 +80,6 @@ const bannerStyles = StyleSheet.create({
   },
 });
 
-// ─── Tab pill ─────────────────────────────────────────────────────────────────
 function TabPill({ config, active, count, onPress }) {
   const outlineIcon = `${config.icon}-outline`;
   return (
@@ -143,7 +140,6 @@ const tabStyles = StyleSheet.create({
   },
 });
 
-// ─── Empty state config ───────────────────────────────────────────────────────
 const EMPTY_CFG = {
   PUBLISHED: {
     icon: 'megaphone-outline',
@@ -167,7 +163,6 @@ const EMPTY_CFG = {
   },
 };
 
-// ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function MyEventsScreenOrg({ navigation }) {
   const insets = useSafeAreaInsets();
   const { myEvents, myEventsLoading, fetchMyEvents } = useEvents();
@@ -187,7 +182,7 @@ export default function MyEventsScreenOrg({ navigation }) {
 
   const Header = () => (
     <View>
-      {/* ── Top bar ── */}
+      {}
       <View style={[styles.topBar, { paddingTop: insets.top + SPACING.md }]}>
         <View>
           <Text style={styles.screenTitle}>My Events</Text>
@@ -198,7 +193,7 @@ export default function MyEventsScreenOrg({ navigation }) {
         </View>
       </View>
 
-      {/* ── Status tabs ── */}
+      {}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -215,7 +210,7 @@ export default function MyEventsScreenOrg({ navigation }) {
         ))}
       </ScrollView>
 
-      {/* ── Active-tab heading ── */}
+      {}
       <View style={[styles.tabHeading, { borderLeftColor: activeCfg.color }]}>
         <Ionicons name={activeCfg.icon} size={16} color={activeCfg.color} />
         <Text style={[styles.tabHeadingText, { color: activeCfg.color }]}>

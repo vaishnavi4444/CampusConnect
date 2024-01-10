@@ -63,7 +63,6 @@ export default function NotificationsScreen() {
     return () => clearInterval(interval);
   }, []);
 
-  
   const loadNotifications = async () => {
     try {
       const response = await notificationsAPI.getAll();
@@ -107,7 +106,7 @@ export default function NotificationsScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {}
       <View style={[styles.header, { paddingTop: insets.top + SPACING.md }]}>
         <View>
           <Text style={styles.headerTitle}>Notifications</Text>
@@ -237,3 +236,4 @@ const styles = StyleSheet.create({
   notifMeta: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   notifTime: { fontSize: FONT_SIZE.xs, color: COLORS.textMuted },
 });
+

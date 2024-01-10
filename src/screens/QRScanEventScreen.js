@@ -452,7 +452,6 @@ export default function QRScanEventScreen() {
                                 </TouchableOpacity>
                             </>
                         ) : (
-                            // Confirmed or invalid — scan next
                             <TouchableOpacity style={s.scanAgainBtn} onPress={reset}>
                                 <Ionicons name="qr-code-outline" size={18} color="#000" />
                                 <Text style={s.scanAgainText}>Scan Next</Text>

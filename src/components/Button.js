@@ -78,7 +78,6 @@ const styles = StyleSheet.create({
     marginLeft: SPACING.sm,
   },
 
-  // Variants
   primary: {
     backgroundColor: COLORS.primary,
     ...SHADOWS.md,

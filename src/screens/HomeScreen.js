@@ -14,8 +14,6 @@ import { debounce, getInitials } from '../utils/helpers';
 
 const CATEGORIES = ['All', 'Technology', 'Sports', 'Arts', 'Academic', 'Social', 'Workshop', 'Cultural'];
 
-// Height of the greeting section that will collapse.
-// Adjust this to match your actual rendered height.
 const GREETING_HEIGHT = 72;
 
 export default function HomeScreen({ navigation }) {
@@ -27,7 +25,6 @@ export default function HomeScreen({ navigation }) {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [refreshing, setRefreshing] = useState(false);
 
-  // Animated scroll value
   const scrollY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -65,9 +62,6 @@ export default function HomeScreen({ navigation }) {
     setRefreshing(false);
   };
 
-  // --- Animated interpolations ---
-
-  // Greeting fades out and shrinks as user scrolls down
   const greetingOpacity = scrollY.interpolate({
     inputRange: [0, GREETING_HEIGHT * 0.5, GREETING_HEIGHT],
     outputRange: [1, 0.4, 0],
@@ -80,17 +74,15 @@ export default function HomeScreen({ navigation }) {
     extrapolate: 'clamp',
   });
 
-  // Slight scale-down for the greeting text for a natural collapse feel
   const greetingScale = scrollY.interpolate({
     inputRange: [0, GREETING_HEIGHT],
     outputRange: [1, 0.92],
     extrapolate: 'clamp',
   });
 
-  // --- Sticky header rendered outside FlatList ---
   const renderStickyHeader = () => (
     <View style={{ backgroundColor: COLORS.primary }}>
-      {/* Greeting — collapses on scroll */}
+      {}
       <Animated.View
         style={[
           styles.greetingWrapper,
@@ -119,7 +111,7 @@ export default function HomeScreen({ navigation }) {
         </View>
       </Animated.View>
 
-      {/* Search — always visible */}
+      {}
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
           <Ionicons name="search" size={18} color={COLORS.gray400} />
@@ -133,7 +125,7 @@ export default function HomeScreen({ navigation }) {
         </View>
       </View>
 
-      {/* Categories — always visible */}
+      {}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -182,10 +174,10 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* Sticky header sits outside the scroll */}
+      {}
       {renderStickyHeader()}
 
-      {/* Section title + count */}
+      {}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>
           {selectedCategory !== 'All' ? selectedCategory : 'All Events'}
@@ -217,10 +209,11 @@ export default function HomeScreen({ navigation }) {
         }
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-        // Drive scrollY from the FlatList's scroll position
+
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: false } // height interpolation requires false
+          { useNativeDriver: false } 
+
         )}
         scrollEventThrottle={16}
         refreshControl={

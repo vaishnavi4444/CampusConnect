@@ -1,14 +1,10 @@
 import client from './client';
 
-// ─── Auth ────────────────────────────────────────────────────────────────────
-
 export const authAPI = {
   register: (data) => client.post('/auth/register', data),
   login: (data) => client.post('/auth/login', data),
   me: () => client.get('/auth/me'),
 };
-
-// ─── Events ──────────────────────────────────────────────────────────────────
 
 export const eventsAPI = {
   getAll: (params) => client.get('/events', { params }),
@@ -17,37 +13,32 @@ export const eventsAPI = {
   update: (id, data) => client.put(`/events/${id}`, data),
   delete: (id) => client.delete(`/events/${id}`),
   publish: (id) => client.put(`/events/${id}/publish`),
-  enrolled: () => client.get(`/events/enrolled`), //student
-  getMyEvents: () => client.get('/events/my'), //organizer
-  getMyRegistration: (eventId) => client.get(`/events/registrations/${eventId}`), //for a event get ticket
+  enrolled: () => client.get(`/events/enrolled`), 
+
+  getMyEvents: () => client.get('/events/my'), 
+
+  getMyRegistration: (eventId) => client.get(`/events/registrations/${eventId}`), 
+
   getStats:        (id) => client.get(`/events/${id}/stats`),
   getParticipants: (id) => client.get(`/events/${id}/participants`),
-  
-};
 
-// ─── Registrations ───────────────────────────────────────────────────────────
+};
 
 export const registrationAPI = {
   register: (eventId) => client.post(`/events/${eventId}/register`),
   cancel: (eventId) => client.delete(`/events/${eventId}/register`),
 };
 
-// ─── Check-in ────────────────────────────────────────────────────────────────
-
 export const checkinAPI = {
   validate: (data) => client.post('/checkin', data),
   confirm: (data) => client.post('/checkin/confirm', data),
 };
-
-// ─── Notifications ───────────────────────────────────────────────────────────
 
 export const notificationsAPI = {
   getAll: () => client.get('/notifications'),
   markRead: (id) => client.put(`/notifications/${id}/read`),
   markAllRead: () => client.put('/notifications/read-all'),
 };
-
-// ─── Error helper ────────────────────────────────────────────────────────────
 
 export const getErrorMessage = (error) => {
   if (error.response?.data?.message) return error.response.data.message;
@@ -56,3 +47,4 @@ export const getErrorMessage = (error) => {
   if (error.code === 'ECONNABORTED') return 'Request timed out';
   return 'Something went wrong. Please try again.';
 };
+

@@ -111,10 +111,9 @@ export default function EventDetailsScreen({ route, navigation }) {
   const timeUntil = getTimeUntilEvent(event.date);
   const isPast = new Date(event.date) < new Date();
 
-  // ─── Status-based owner action visibility ──────────────────────────────────
   const isApproved = event.status === 'APPROVED';
   const isPublished = event.status === 'PUBLISHED';
-  // Only APPROVED and PUBLISHED statuses show any management actions
+
   const showManageSection = isOwner && (isApproved || isPublished);
 
   const InfoRow = ({ icon, label, value }) => (
@@ -132,7 +131,7 @@ export default function EventDetailsScreen({ route, navigation }) {
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Hero */}
+        {}
         <LinearGradient
           colors={[COLORS.primary, COLORS.primaryLight]}
           style={[styles.hero, { paddingTop: insets.top + 8 }]}
@@ -170,9 +169,9 @@ export default function EventDetailsScreen({ route, navigation }) {
           </View>
         </LinearGradient>
 
-        {/* Content */}
+        {}
         <View style={styles.content}>
-          {/* Info card */}
+          {}
           <View style={styles.infoCard}>
             <InfoRow icon="calendar-outline" label="Date" value={formatDate(event.date)} />
             <View style={styles.divider} />
@@ -191,7 +190,7 @@ export default function EventDetailsScreen({ route, navigation }) {
             )}
           </View>
 
-          {/* Capacity */}
+          {}
           {event.capacity > 0 && (
             <View style={styles.capacityCard}>
               <View style={styles.capacityHeader}>
@@ -222,7 +221,7 @@ export default function EventDetailsScreen({ route, navigation }) {
             </View>
           )}
 
-          {/* Description */}
+          {}
           {event.description && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>About this event</Text>
@@ -230,7 +229,7 @@ export default function EventDetailsScreen({ route, navigation }) {
             </View>
           )}
 
-          {/* Registered ticket link */}
+          {}
           {event.isRegistered && (
             <TouchableOpacity
               style={styles.ticketBanner}
@@ -248,12 +247,12 @@ export default function EventDetailsScreen({ route, navigation }) {
             </TouchableOpacity>
           )}
 
-          {/* ── Organizer actions — only shown for APPROVED or PUBLISHED ── */}
+          {}
           {showManageSection && (
             <View style={styles.organizerSection}>
               <Text style={styles.sectionTitle}>Manage Event</Text>
 
-              {/* View Registered (before event) / View Attendees (after event) */}
+              {}
               {(isPublished) && (
                 <Button
                   title={isPast ? 'View Attendees' : 'View Registered'}
@@ -263,7 +262,7 @@ export default function EventDetailsScreen({ route, navigation }) {
                 />
               )}
 
-              {/* QR scanner — only after event ends */}
+              {}
               {(isPublished) && (
                 <Button
                   title="Scan QR Codes"
@@ -274,7 +273,7 @@ export default function EventDetailsScreen({ route, navigation }) {
                 />
               )}
 
-              {/* Publish — only when APPROVED and event hasn't happened yet */}
+              {}
               {isApproved && (
                 isPast ? (
                   <View style={styles.missedPublishBanner}>
@@ -301,7 +300,7 @@ export default function EventDetailsScreen({ route, navigation }) {
         </View>
       </ScrollView>
 
-      {/* Bottom CTA */}
+      {}
       {!isOwner && !isPast && (
         <View style={[styles.bottomBar, { paddingBottom: insets.bottom + SPACING.md }]}>
           {event.isRegistered ? (

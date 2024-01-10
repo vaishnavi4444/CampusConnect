@@ -8,7 +8,8 @@ import { useEvents } from '../hooks/useContexts';
 import { EventCard } from '../components';
 import { EventCardSkeleton, EmptyState } from '../components/Loaders';
 import { COLORS, SPACING, FONT_SIZE, FONT_WEIGHT, BORDER_RADIUS } from '../constants/theme';
-import client from '../api/client'; // adjust path as needed
+import client from '../api/client'; 
+
 import { eventsAPI } from '../api/endpoints';
 
 const TABS = ['Upcoming', 'Past'];
@@ -20,12 +21,11 @@ export default function MyEventsScreenUser({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('Upcoming');
 
-  // ✅ Use the enrolled endpoint for students
   const fetchEnrolledEvents = useCallback(async () => {
     try {
       const res = await eventsAPI.enrolled();
       const data = res?.data;
-      // Handle null / undefined / non-array responrses gracefully
+
       setEnrolledEvents(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to fetch enrolled events:', err);
@@ -47,7 +47,6 @@ export default function MyEventsScreenUser({ navigation }) {
 
   const now = new Date();
 
-  // ✅ Filter enrolled events by date for Upcoming / Past tabs
   const filteredEvents = enrolledEvents.filter((e) => {
     const eventDate = new Date(e.date);
     return activeTab === 'Upcoming' ? eventDate >= now : eventDate < now;
@@ -61,7 +60,7 @@ export default function MyEventsScreenUser({ navigation }) {
 
   const renderHeader = () => (
     <View>
-      {/* Top bar */}
+      {}
       <View style={[styles.topBar, { paddingTop: insets.top + SPACING.md }]}>
         <Text style={styles.screenTitle}>My Events</Text>
         <View style={styles.countBadge}>
@@ -69,7 +68,7 @@ export default function MyEventsScreenUser({ navigation }) {
         </View>
       </View>
 
-      {/* Tabs */}
+      {}
       <View style={styles.tabContainer}>
         {TABS.map((tab) => {
           const count = getTabCount(tab);

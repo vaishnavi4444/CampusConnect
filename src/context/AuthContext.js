@@ -36,21 +36,18 @@ export function AuthProvider({ children }) {
         setUser(JSON.parse(storedUser));
 
         try {
-          // Verify token is still valid
           const response = await authAPI.me();
           const freshUser = response.data?.data.user || response.data;
           setUser(freshUser);
           // console.log(freshUser)
           await AsyncStorage.setItem('user', JSON.stringify(freshUser));
         } catch (err) {
-          // Token invalid → clear safely
           await clearStorage();
           setToken(null);
           setUser(null);
         }
       }
     } catch (err) {
-      // Any unexpected failure → clear safely
       await clearStorage();
       setToken(null);
       setUser(null);
@@ -115,7 +112,7 @@ export function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     await AsyncStorage.removeItem('token');
     await AsyncStorage.removeItem('user');
-    client.defaults.headers.common['Authorization'] = ''; // if applicable
+    client.defaults.headers.common['Authorization'] = ''; 
     setUser(null);
     setToken(null);
   }, []);

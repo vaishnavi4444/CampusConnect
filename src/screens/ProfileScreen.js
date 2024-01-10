@@ -34,7 +34,7 @@ function SettingRow({ icon, label, value, onPress, danger, chevron = true }) {
 export default function ProfileScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const { user, logout, isOrganizer } = useAuth();
-  const { myEvents, clearAll } = useEvents(); // ✅ clearAll resets event state
+  const { myEvents, clearAll } = useEvents(); 
 
   const handleLogout = () => {
     Alert.alert(
@@ -46,8 +46,10 @@ export default function ProfileScreen({ navigation }) {
           text: 'Sign Out',
           style: 'destructive',
           onPress: async () => {
-            clearAll();   // ✅ wipe event context before auth logout
-            await logout(); // ✅ clears token + auth state
+            clearAll();   
+
+            await logout(); 
+
           },
         },
       ]
@@ -59,7 +61,7 @@ export default function ProfileScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
+        {}
         <LinearGradient
           colors={[COLORS.primary, COLORS.primaryLight]}
           style={[styles.header, { paddingTop: insets.top + SPACING.xl }]}

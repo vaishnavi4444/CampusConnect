@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,8 +11,7 @@ import CreateEventScreen from '../screens/CreateEventScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import QRScanEventScreen from '../screens/QRScanEventScreen'
 import { useAuth } from '../hooks/useContexts';
-import { COLORS, SPACING, FONT_SIZE, FONT_WEIGHT, SHADOWS } from '../constants/theme';
-import TicketScreen from '../screens/TicketScreen'
+import { COLORS, SPACING, FONT_WEIGHT, SHADOWS } from '../constants/theme';
 const Tab = createBottomTabNavigator();
 
 function CustomTabBar({ state, descriptors, navigation }) {
@@ -115,7 +114,6 @@ export default function TabNavigator() {
           <Tab.Screen name="MyEvents" component={MyEventsScreenUser} />
           <Tab.Screen name="Notifications" component={NotificationsScreen} />
           <Tab.Screen name="Profile" component={ProfileScreen} />
-          {/* <Tab.Screen name="Ticket" component={TicketScreen} /> */}
         </Tab.Navigator>
       )
 

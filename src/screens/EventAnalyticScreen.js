@@ -11,10 +11,8 @@ import { formatDate, formatTime } from '../utils/helpers';
 import { eventsAPI, getErrorMessage } from '../api/endpoints';
 import { Loader } from '../components/Loaders';
 
-// ─── helpers ──────────────────────────────────────────────────────────────────
 const isEventConcluded = (dateStr) => new Date(dateStr) < Date.now();
 
-// ─── Stat card ────────────────────────────────────────────────────────────────
 function StatCard({ icon, label, value, color, bg, note }) {
     return (
         <View style={[statStyles.card, { backgroundColor: bg }]}>
@@ -62,7 +60,6 @@ const statStyles = StyleSheet.create({
     },
 });
 
-// ─── Donut-style attendance bar ───────────────────────────────────────────────
 function AttendanceBar({ checkins, registrations }) {
     const pct = registrations > 0 ? Math.round((checkins / registrations) * 100) : 0;
     return (
@@ -114,7 +111,6 @@ const barStyles = StyleSheet.create({
     legendItem: { fontSize: FONT_SIZE.xs, color: COLORS.textMuted },
 });
 
-// ─── Participant row ──────────────────────────────────────────────────────────
 function ParticipantRow({ item, index, concluded }) {
     return (
         <View style={rowStyles.row}>
@@ -192,7 +188,6 @@ const rowStyles = StyleSheet.create({
     badgeText: { fontSize: 11, fontWeight: FONT_WEIGHT.bold },
 });
 
-// ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function EventAnalyticsScreen({ route, navigation }) {
     const { eventId } = route.params;
     const insets = useSafeAreaInsets();
@@ -202,7 +197,6 @@ export default function EventAnalyticsScreen({ route, navigation }) {
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState(null);
     const [search, setSearch] = useState('');
-
 
     const load = async (silent = false) => {
         if (!silent) setLoading(true);
@@ -224,7 +218,6 @@ export default function EventAnalyticsScreen({ route, navigation }) {
     };
 
     useEffect(() => { load(); }, []);
-
 
     const handleRefresh = () => { setRefreshing(true); load(true); };
 
@@ -250,14 +243,13 @@ export default function EventAnalyticsScreen({ route, navigation }) {
         p.user.email?.toLowerCase().includes(search.toLowerCase())
     );
 
-    // ── Capacity fill % ──
     const capacityPct = event.capacity
         ? Math.min(Math.round((metrics.registrations / event.capacity) * 100), 100)
         : null;
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
-            {/* ── Header ── */}
+            {}
             <LinearGradient colors={[COLORS.primary, COLORS.primaryLight]} style={styles.header}>
                 <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
                     <Ionicons name="arrow-back" size={22} color={COLORS.white} />
@@ -284,7 +276,7 @@ export default function EventAnalyticsScreen({ route, navigation }) {
                 }
                 ListHeaderComponent={() => (
                     <View>
-                        {/* ── Stats section (always shown) ── */}
+                        {}
                         <View style={styles.statsSection}>
                             <View style={styles.statsRow}>
                                 <StatCard
@@ -332,7 +324,7 @@ export default function EventAnalyticsScreen({ route, navigation }) {
                                 )}
                             </View>
 
-                            {/* Capacity fill bar — pre-event */}
+                            {}
                             {!concluded && capacityPct != null && (
                                 <View style={styles.capacityBarCard}>
                                     <View style={styles.capacityBarHeader}>
@@ -351,7 +343,7 @@ export default function EventAnalyticsScreen({ route, navigation }) {
                                 </View>
                             )}
 
-                            {/* Attendance rate bar — post-event */}
+                            {}
                             {concluded && (
                                 <AttendanceBar
                                     checkins={metrics.checkins}
@@ -360,7 +352,7 @@ export default function EventAnalyticsScreen({ route, navigation }) {
                             )}
                         </View>
 
-                        {/* ── Participants heading ── */}
+                        {}
                         <View style={styles.listHeader}>
                             <Text style={styles.listTitle}>
                                 {concluded ? 'Attendee List' : 'Registered Participants'}
@@ -390,7 +382,6 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: COLORS.bgPrimary },
     centered: { alignItems: 'center', justifyContent: 'center', gap: SPACING.md, padding: SPACING.xl },
 
-    // ── Header
     header: {
         paddingHorizontal: SPACING.xl,
         paddingBottom: SPACING.lg,
@@ -427,7 +418,6 @@ const styles = StyleSheet.create({
     statusDot: { width: 7, height: 7, borderRadius: 4 },
     statusChipText: { fontSize: FONT_SIZE.xs, fontWeight: FONT_WEIGHT.bold },
 
-    // ── Stats
     statsSection: {
         padding: SPACING.xl,
         paddingBottom: SPACING.sm,
@@ -438,7 +428,6 @@ const styles = StyleSheet.create({
         gap: SPACING.sm,
     },
 
-    // ── Capacity bar (pre-event)
     capacityBarCard: {
         backgroundColor: COLORS.white,
         borderRadius: BORDER_RADIUS.xl,
@@ -470,7 +459,6 @@ const styles = StyleSheet.create({
     capacityFill: { height: '100%', borderRadius: BORDER_RADIUS.full },
     capacityNote: { fontSize: FONT_SIZE.xs, color: COLORS.textMuted },
 
-    // ── List header
     listHeader: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -498,7 +486,6 @@ const styles = StyleSheet.create({
 
     listContent: { paddingBottom: SPACING.xxxl },
 
-    // ── Empty
     emptyWrap: {
         alignItems: 'center',
         padding: SPACING.xxxl,
@@ -515,7 +502,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
 
-    // ── Error
     errorText: {
         fontSize: FONT_SIZE.lg,
         fontWeight: FONT_WEIGHT.bold,

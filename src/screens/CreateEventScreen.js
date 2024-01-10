@@ -14,7 +14,6 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 const CATEGORIES = ['Technology', 'Sports', 'Arts', 'Academic', 'Social', 'Workshop', 'Cultural', 'Other'];
 
-// ─── DateTimeField ────────────────────────────────────────────────────────────
 function DateTimeField({ label, value, placeholder, icon, error, required, onPress }) {
   const hasValue = Boolean(value);
   return (
@@ -82,7 +81,6 @@ const dtStyles = StyleSheet.create({
   errorText: { fontSize: FONT_SIZE.xs, color: COLORS.error },
 });
 
-// ─── iOS Modal Picker ─────────────────────────────────────────────────────────
 function IOSPickerModal({ visible, mode, tempDate, onConfirm, onCancel, onTempChange }) {
   return (
     <Modal
@@ -162,9 +160,6 @@ const modalStyles = StyleSheet.create({
   picker: { width: '100%' },
 });
 
-// ─── Formatting helpers ───────────────────────────────────────────────────────
-
-// ✅ Fixed: was `dateObj ? "00" : ...` which always returned "00"
 function formatDateISO(dateObj) {
   if (!dateObj || isNaN(dateObj)) return '';
   const y = dateObj.getFullYear();
@@ -175,8 +170,10 @@ function formatDateISO(dateObj) {
 
 function formatTimeHHMM(dateObj) {
   if (!dateObj || isNaN(dateObj)) return '';
-  const h = String(dateObj.getHours()).padStart(2, '0');   // ✅ was broken ternary
-  const m = String(dateObj.getMinutes()).padStart(2, '0'); // ✅ was broken ternary
+  const h = String(dateObj.getHours()).padStart(2, '0');   
+
+  const m = String(dateObj.getMinutes()).padStart(2, '0'); 
+
   return `${h}:${m}`;
 }
 
@@ -194,7 +191,6 @@ function formatTimeDisplay(hhmm) {
   return `${hour}:${String(m).padStart(2, '0')} ${suffix}`;
 }
 
-// ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function CreateEventScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const { createEvent } = useEvents();
@@ -203,8 +199,10 @@ export default function CreateEventScreen({ navigation }) {
   const [form, setForm] = useState({
     title: '',
     description: '',
-    date: '',   // "YYYY-MM-DD"
-    time: '',   // "HH:MM"
+    date: '',   
+
+    time: '',   
+
     venue: '',
     capacity: '',
     category: '',
@@ -212,9 +210,8 @@ export default function CreateEventScreen({ navigation }) {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // Which picker is open: null | 'date' | 'time'
   const [pickerMode, setPickerMode] = useState(null);
-  // Holds in-progress value while iOS spinner modal is open
+
   const [tempDate, setTempDate] = useState(new Date());
 
   const isIOS = Platform.OS === 'ios';
@@ -224,7 +221,6 @@ export default function CreateEventScreen({ navigation }) {
     setErrors((prev) => ({ ...prev, [field]: null }));
   };
 
-  // ── Open pickers ──────────────────────────────────────────────────────────
   const openDatePicker = () => {
     const base = form.date ? new Date(`${form.date}T00:00:00`) : new Date();
     setTempDate(isNaN(base) ? new Date() : base);
@@ -241,17 +237,17 @@ export default function CreateEventScreen({ navigation }) {
     setPickerMode('time');
   };
 
-  // ── iOS: user taps Done in modal ──────────────────────────────────────────
   const confirmIOSPicker = () => {
     if (pickerMode === 'date') {
-      setField('date', formatDateISO(tempDate));   // ✅ uses fixed helper
+      setField('date', formatDateISO(tempDate));   
+
     } else {
-      setField('time', formatTimeHHMM(tempDate));  // ✅ uses fixed helper
+      setField('time', formatTimeHHMM(tempDate));  
+
     }
     setPickerMode(null);
   };
 
-  // ── Android: onChange fires immediately ───────────────────────────────────
   const onAndroidChange = (_event, selectedDate) => {
     setPickerMode(null);
     if (!selectedDate) return;
@@ -262,7 +258,6 @@ export default function CreateEventScreen({ navigation }) {
     }
   };
 
-  // ── Validation ────────────────────────────────────────────────────────────
   const validate = () => {
     const errs = {};
     if (!form.title.trim()) errs.title = 'Event title is required';
@@ -305,7 +300,7 @@ export default function CreateEventScreen({ navigation }) {
       style={styles.container}
       behavior={isIOS ? 'padding' : undefined}
     >
-      {/* Header */}
+      {}
       <LinearGradient
         colors={[COLORS.primary, COLORS.primaryLight]}
         style={[styles.header, { paddingTop: insets.top + 8 }]}
@@ -322,7 +317,7 @@ export default function CreateEventScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* ── Basic Info ── */}
+        {}
         <SectionHeader title="Basic Information" icon="information-circle-outline" />
 
         <Input
@@ -346,7 +341,7 @@ export default function CreateEventScreen({ navigation }) {
           icon={<Ionicons name="document-text-outline" size={18} color={COLORS.gray400} />}
         />
 
-        {/* ── Category ── */}
+        {}
         <View style={styles.fieldGroup}>
           <Text style={styles.fieldLabel}>
             Category <Text style={styles.required}>*</Text>
@@ -387,7 +382,7 @@ export default function CreateEventScreen({ navigation }) {
           </View>
         </View>
 
-        {/* ── Date & Time ── */}
+        {}
         <SectionHeader title="Date & Time" icon="calendar-outline" />
 
         <View style={styles.row}>
@@ -412,7 +407,7 @@ export default function CreateEventScreen({ navigation }) {
           />
         </View>
 
-        {/* Android native picker */}
+        {}
         {!isIOS && pickerMode !== null && (
           <DateTimePicker
             value={tempDate}
@@ -423,19 +418,20 @@ export default function CreateEventScreen({ navigation }) {
           />
         )}
 
-        {/* iOS modal bottom-sheet picker */}
+        {}
         {isIOS && (
           <IOSPickerModal
             visible={pickerMode !== null}
             mode={pickerMode ?? 'date'}
             tempDate={tempDate}
             onTempChange={setTempDate}
-            onConfirm={confirmIOSPicker}   // ✅ now calls fixed helpers
+            onConfirm={confirmIOSPicker}   
+
             onCancel={() => setPickerMode(null)}
           />
         )}
 
-        {/* ── Venue & Capacity ── */}
+        {}
         <SectionHeader title="Location & Capacity" icon="location-outline" />
 
         <Input

@@ -1,5 +1,5 @@
 export const COLORS = {
-  // Primary palette - deep navy + warm amber
+  // Primary palette 
   primary: '#1A1F3A',
   primaryLight: '#252B4A',
   primaryDark: '#0F1225',
