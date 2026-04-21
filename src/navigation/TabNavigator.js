@@ -4,10 +4,12 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import HomeScreen from '../screens/HomeScreen';
-import MyEventsScreen from '../screens/MyEventsScreen';
+import MyEventsScreenUser from '../screens/MyEventsScreenUser';
+import MyEventsScreenOrg from '../screens/MyEventsScreenOrg';
 import ProfileScreen from '../screens/ProfileScreen';
 import CreateEventScreen from '../screens/CreateEventScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
+import QRScanEventScreen from '../screens/QRScanEventScreen'
 import { useAuth } from '../hooks/useContexts';
 import { COLORS, SPACING, FONT_SIZE, FONT_WEIGHT, SHADOWS } from '../constants/theme';
 
@@ -28,6 +30,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
           Create: isFocused ? 'add-circle' : 'add-circle-outline',
           Notifications: isFocused ? 'notifications' : 'notifications-outline',
           Profile: isFocused ? 'person' : 'person-outline',
+          QRScanEvent: isFocused ? 'qr-code' : 'qr-code-outline'
         };
 
         const labelMap = {
@@ -36,6 +39,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
           Create: 'Create',
           Notifications: 'Alerts',
           Profile: 'Profile',
+          QRScanEvent: 'QRScan'
         };
 
         const isCreate = route.name === 'Create';
@@ -89,18 +93,33 @@ export default function TabNavigator() {
   const { isOrganizer } = useAuth();
 
   return (
-    <Tab.Navigator
-      tabBar={(props) => <CustomTabBar {...props} />}
-      screenOptions={{ headerShown: false }}
-    >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="MyEvents" component={MyEventsScreen} />
-      {isOrganizer && (
-        <Tab.Screen name="Create" component={CreateEventScreen} />
-      )}
-      <Tab.Screen name="Notifications" component={NotificationsScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
-    </Tab.Navigator>
+
+    <>
+      {isOrganizer ? (
+        <Tab.Navigator
+          tabBar={(props) => <CustomTabBar {...props} />}
+          screenOptions={{ headerShown: false }}
+        >
+          <Tab.Screen name="MyEvents" component={MyEventsScreenOrg} />
+          <Tab.Screen name="QRScanEvent" component={QRScanEventScreen} />
+          <Tab.Screen name="Create" component={CreateEventScreen} />
+          <Tab.Screen name="Notifications" component={NotificationsScreen} />
+          <Tab.Screen name="Profile" component={ProfileScreen} />
+        </Tab.Navigator>
+      ) : (
+        <Tab.Navigator
+          tabBar={(props) => <CustomTabBar {...props} />}
+          screenOptions={{ headerShown: false }}
+        >
+          <Tab.Screen name="Home" component={HomeScreen} />
+          <Tab.Screen name="MyEvents" component={MyEventsScreenUser} />
+          <Tab.Screen name="Notifications" component={NotificationsScreen} />
+          <Tab.Screen name="Profile" component={ProfileScreen} />
+        </Tab.Navigator>
+      )
+
+      }
+    </>
   );
 }
 

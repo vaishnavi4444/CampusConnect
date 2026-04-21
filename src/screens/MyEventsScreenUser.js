@@ -11,7 +11,7 @@ import { COLORS, SPACING, FONT_SIZE, FONT_WEIGHT, BORDER_RADIUS } from '../const
 
 const TABS = ['Upcoming', 'Past'];
 
-export default function MyEventsScreen({ navigation }) {
+export default function MyEventsScreenUser({ navigation }) {
   const insets = useSafeAreaInsets();
   const { myEvents, myEventsLoading, fetchMyEvents } = useEvents();
   const [refreshing, setRefreshing] = useState(false);

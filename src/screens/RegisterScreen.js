@@ -12,6 +12,8 @@ import { Button, Input } from '../components';
 import { COLORS, SPACING, FONT_SIZE, FONT_WEIGHT, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 import { validateEmail, validatePassword, validateName } from '../utils/helpers';
 
+
+
 const ROLES = [
   { value: 'STUDENT', label: 'Student', icon: 'school-outline', desc: 'Browse and register for events' },
   { value: 'ORGANIZER', label: 'Organizer', icon: 'megaphone-outline', desc: 'Create and manage events' },
@@ -28,6 +30,10 @@ export default function RegisterScreen({ navigation }) {
   const [role, setRole] = useState('STUDENT');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
   const validate = () => {
     const errs = {};

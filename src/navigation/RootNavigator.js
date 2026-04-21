@@ -8,12 +8,13 @@ import TabNavigator from './TabNavigator';
 import EventDetailsScreen from '../screens/EventDetailsScreen';
 import CreateEventScreen from '../screens/CreateEventScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
+import QRScanEventScreen from '../screens/QRScanEventScreen';
 
 const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
   const { isAuthenticated, loading } = useAuth();
-
+  console.log("auth:", isAuthenticated)
   if (loading) return <Loader message="Loading..." />;
 
   return (
@@ -46,9 +47,15 @@ export default function RootNavigator() {
             component={CreateEventScreen}
             options={{ animation: 'slide_from_bottom' }}
           />
+          
           <Stack.Screen
             name="Notifications"
             component={NotificationsScreen}
+            options={{ animation: 'slide_from_right' }}
+          />
+          <Stack.Screen
+            name="QRScanEvent"
+            component={QRScanEventScreen}
             options={{ animation: 'slide_from_right' }}
           />
         </>

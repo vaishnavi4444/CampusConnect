@@ -10,7 +10,7 @@ import { useEvents } from '../hooks/useContexts';
 import { useAuth } from '../hooks/useContexts';
 import { useUI } from '../hooks/useContexts';
 import { Button } from '../components';
-import { Loader } from '../components/wLoaders';
+import { Loader } from '../components/Loaders';
 import { COLORS, SPACING, FONT_SIZE, FONT_WEIGHT, BORDER_RADIUS, SHADOWS, CATEGORY_COLORS } from '../constants/theme';
 import { formatDate, formatTime, getCapacityPercent, getTimeUntilEvent } from '../utils/helpers';
 
