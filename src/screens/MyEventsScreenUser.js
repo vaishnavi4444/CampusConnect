@@ -24,8 +24,8 @@ export default function MyEventsScreenUser({ navigation }) {
   const fetchEnrolledEvents = useCallback(async () => {
     try {
       const res = await eventsAPI.enrolled();
-      const data = res?.data;
-
+      const data = res?.data.data;
+      console.log("data :",data)
       setEnrolledEvents(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to fetch enrolled events:', err);

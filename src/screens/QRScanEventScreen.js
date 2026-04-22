@@ -71,8 +71,12 @@ export default function QRScanEventScreen() {
 
     const loadEvents = async () => {
         try {
-            const res = await eventsAPI.getAll();
-            setEvents(res.data?.data || res.data || []);
+            const res = await eventsAPI.getMyEvents();
+            const events = res.data?.data || res.data || [];
+            const publishedEvents = events.filter(
+                (event) => event.status?.toUpperCase() === 'PUBLISHED'
+            );
+            setEvents(publishedEvents);
         } catch (err) {
             // console.log(err);
         } finally {
@@ -95,8 +99,12 @@ export default function QRScanEventScreen() {
         spinLoop.current.start();
 
         try {
-            const res = await eventsAPI.getAll();
-            setEvents(res.data?.data || res.data || []);
+            const res = await eventsAPI.getMyEvents();
+            const events = res.data?.data || res.data || [];
+            const publishedEvents = events.filter(
+                (event) => event.status?.toUpperCase() === 'PUBLISHED'
+            );
+            setEvents(publishedEvents);
         } catch (err) {
             // console.log(err);
         } finally {
@@ -131,7 +139,7 @@ export default function QRScanEventScreen() {
                     alreadyCheckedIn: validation?.alreadyCheckedIn ?? false,
                     attendee: validation?.attendee,
                     event: selectedEvent,
-                    ticketId:validation.ticketId,
+                    ticketId: validation.ticketId,
                 });
             } catch (err) {
                 setResult({ success: false, message: getErrorMessage(err) });
@@ -336,8 +344,8 @@ export default function QRScanEventScreen() {
                                         result.alreadyCheckedIn
                                             ? 'alert-circle'
                                             : confirmed
-                                            ? 'checkmark-circle'
-                                            : 'person-circle-outline'
+                                                ? 'checkmark-circle'
+                                                : 'person-circle-outline'
                                     }
                                     size={84}
                                     color={result.alreadyCheckedIn ? '#F59E0B' : '#00E5C0'}
@@ -357,8 +365,8 @@ export default function QRScanEventScreen() {
                                 {result.alreadyCheckedIn
                                     ? 'Already Checked In'
                                     : confirmed
-                                    ? 'Checked In!'
-                                    : 'Ticket Valid'}
+                                        ? 'Checked In!'
+                                        : 'Ticket Valid'}
                             </Text>
 
                             {/* Attendee card */}

@@ -12,7 +12,7 @@ import { EventCardSkeleton, EmptyState } from '../components/Loaders';
 import { COLORS, SPACING, FONT_SIZE, FONT_WEIGHT, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 import { debounce, getInitials } from '../utils/helpers';
 
-const CATEGORIES = ['All', 'Technology', 'Sports', 'Arts', 'Academic', 'Social', 'Workshop', 'Cultural'];
+const CATEGORIES = ['All', 'Technology', 'Sports', 'Arts', 'Academic', 'Social', 'Workshop', 'Cultural', 'Other'];
 
 const GREETING_HEIGHT = 72;
 
