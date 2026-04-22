@@ -111,6 +111,12 @@ export default function EventDetailsScreen({ route, navigation }) {
   const timeUntil = getTimeUntilEvent(event.date);
   const isPast = new Date(event.date) < new Date();
 
+  // ─── Status-based owner action visibility ──────────────────────────────────
+  const isApproved = event.status === 'APPROVED';
+  const isPublished = event.status === 'PUBLISHED';
+  // Only APPROVED and PUBLISHED statuses show any management actions
+  const showManageSection = isOwner && (isApproved || isPublished);
+
   const InfoRow = ({ icon, label, value }) => (
     <View style={styles.infoRow}>
       <View style={styles.infoIcon}>
@@ -156,7 +162,7 @@ export default function EventDetailsScreen({ route, navigation }) {
               </View>
             )}
 
-            {event.status && event.status !== 'PUBLISHED' && (
+            {event.status && event.status !== 'APPROVED' && (
               <View style={styles.statusBadge}>
                 <Text style={styles.statusText}>{event.status}</Text>
               </View>
@@ -242,35 +248,51 @@ export default function EventDetailsScreen({ route, navigation }) {
             </TouchableOpacity>
           )}
 
-          {/* Organizer actions */}
-          {isOwner && (
+          {/* ── Organizer actions — only shown for APPROVED or PUBLISHED ── */}
+          {showManageSection && (
             <View style={styles.organizerSection}>
               <Text style={styles.sectionTitle}>Manage Event</Text>
-              <Button
-                title="Scan QR Codes"
-                onPress={() => navigation.navigate('QRScanner', { eventId: currentEvent.id })}
-                variant="success"
-                icon={<Ionicons name="qr-code-outline" size={18} color={COLORS.white} />}
-                style={styles.qrScanBtn}
-              />
-              <Button
-                title="View Attended"
-                onPress={() => navigation.navigate('AttendedList', { 
-                  eventId: currentEvent.id, 
-                  eventTitle: currentEvent.title 
-                })}
-                icon={<Ionicons name="people-outline" size={18} color={COLORS.white} />}
-                style={styles.attendedBtn}
-              />
-              {event.status !== 'PUBLISHED' && (
+
+              {/* View Registered (before event) / View Attendees (after event) */}
+              {(isPublished) && (
                 <Button
-                  title="Publish Event"
-                  onPress={handlePublish}
-                  loading={actionLoading}
-                  variant="success"
-                  icon={<Ionicons name="checkmark-circle-outline" size={18} color={COLORS.white} />}
-                  style={styles.publishBtn}
+                  title={isPast ? 'View Attendees' : 'View Registered'}
+                  onPress={() => navigation.navigate('EventAnalytics', { eventId: currentEvent.id })}
+                  icon={<Ionicons name="people-outline" size={18} color={COLORS.white} />}
+                  style={styles.attendedBtn}
                 />
+              )}
+
+              {/* QR scanner — only after event ends */}
+              {(isPublished) && (
+                <Button
+                  title="Scan QR Codes"
+                  onPress={() => navigation.navigate('QRScanEvent', { eventId: currentEvent.id })}
+                  variant="success"
+                  icon={<Ionicons name="qr-code-outline" size={18} color={COLORS.white} />}
+                  style={styles.qrScanBtn}
+                />
+              )}
+
+              {/* Publish — only when APPROVED and event hasn't happened yet */}
+              {isApproved && (
+                isPast ? (
+                  <View style={styles.missedPublishBanner}>
+                    <Ionicons name="alert-circle-outline" size={16} color="#9CA3AF" />
+                    <Text style={styles.missedPublishText}>
+                      Publishing window passed — this event is over.
+                    </Text>
+                  </View>
+                ) : (
+                  <Button
+                    title="Publish Event"
+                    onPress={handlePublish}
+                    loading={actionLoading}
+                    variant="success"
+                    icon={<Ionicons name="megaphone-outline" size={18} color={COLORS.white} />}
+                    style={styles.publishBtn}
+                  />
+                )
               )}
             </View>
           )}
@@ -457,4 +479,21 @@ const styles = StyleSheet.create({
   },
   errorContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: SPACING.md },
   errorText: { fontSize: FONT_SIZE.xl, fontWeight: FONT_WEIGHT.bold, color: COLORS.textSecondary },
+  missedPublishBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    backgroundColor: COLORS.gray100,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    marginTop: SPACING.sm,
+  },
+  missedPublishText: {
+    fontSize: FONT_SIZE.sm,
+    color: COLORS.textMuted,
+    fontStyle: 'italic',
+    flex: 1,
+  },
+
 });

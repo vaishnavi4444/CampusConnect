@@ -74,7 +74,7 @@ export default function RegisterScreen({ navigation }) {
         <Text style={styles.headerTitle}>Create account</Text>
         <Text style={styles.headerSubtitle}>Join your campus community</Text>
       </LinearGradient>
-
+r
       <View style={styles.formContainer}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}

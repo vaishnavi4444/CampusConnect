@@ -17,7 +17,12 @@ export const eventsAPI = {
   update: (id, data) => client.put(`/events/${id}`, data),
   delete: (id) => client.delete(`/events/${id}`),
   publish: (id) => client.put(`/events/${id}/publish`),
-  getEnrolled: () => client.get('/events/enrolled'),
+  enrolled: () => client.get(`/events/enrolled`), //student
+  getMyEvents: () => client.get('/events/my'), //organizer
+  getMyRegistration: (eventId) => client.get(`/events/registrations/${eventId}`), //for a event get ticket
+  getStats:        (id) => client.get(`/events/${id}/stats`),
+  getParticipants: (id) => client.get(`/events/${id}/participants`),
+  
 };
 
 // ─── Registrations ───────────────────────────────────────────────────────────
@@ -32,7 +37,6 @@ export const registrationAPI = {
 export const checkinAPI = {
   validate: (data) => client.post('/checkin', data),
   confirm: (data) => client.post('/checkin/confirm', data),
-  getAttended: (eventId) => client.get(`/checkin/attended/${eventId}`),
 };
 
 // ─── Notifications ───────────────────────────────────────────────────────────

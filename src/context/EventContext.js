@@ -11,6 +11,10 @@ export function EventProvider({ children }) {
   const [myEventsLoading, setMyEventsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const clearAll = useCallback(() => {
+    setEvents([]); setMyEvents([]); setCurrentEvent(null); setError(null);
+  }, []);
+
   const fetchEvents = useCallback(async (params = {}) => {
     setLoading(true);
     setError(null);
@@ -34,6 +38,7 @@ export function EventProvider({ children }) {
       const response = await eventsAPI.getById(id);
       const data = response.data?.data || response.data;
       setCurrentEvent(data);
+      console.log(data)
       return { success: true, data };
     } catch (err) {
       const message = getErrorMessage(err);
@@ -46,7 +51,7 @@ export function EventProvider({ children }) {
     setMyEventsLoading(true);
     setError(null);
     try {
-      const response = await eventsAPI.getEnrolled();
+      const response = await eventsAPI.getMyEvents();
       const data = response.data?.data || response.data || [];
       setMyEvents(Array.isArray(data) ? data : []);
       return { success: true, data };
@@ -121,7 +126,6 @@ export function EventProvider({ children }) {
       const response = await registrationAPI.register(eventId);
       const data = response.data?.data || response.data;
 
-      // Update events list to reflect registration
       setEvents((prev) =>
         prev.map((e) =>
           e.id === eventId
@@ -193,6 +197,7 @@ export function EventProvider({ children }) {
         registerForEvent,
         cancelRegistration,
         clearError,
+        clearAll
       }}
     >
       {children}

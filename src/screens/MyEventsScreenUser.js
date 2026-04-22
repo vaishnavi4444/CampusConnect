@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity,
 } from 'react-native';
@@ -8,48 +8,71 @@ import { useEvents } from '../hooks/useContexts';
 import { EventCard } from '../components';
 import { EventCardSkeleton, EmptyState } from '../components/Loaders';
 import { COLORS, SPACING, FONT_SIZE, FONT_WEIGHT, BORDER_RADIUS } from '../constants/theme';
+import client from '../api/client'; // adjust path as needed
+import { eventsAPI } from '../api/endpoints';
 
 const TABS = ['Upcoming', 'Past'];
 
 export default function MyEventsScreenUser({ navigation }) {
   const insets = useSafeAreaInsets();
-  const { myEvents, myEventsLoading, fetchMyEvents } = useEvents();
+  const [enrolledEvents, setEnrolledEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('Upcoming');
 
+  // ✅ Use the enrolled endpoint for students
+  const fetchEnrolledEvents = useCallback(async () => {
+    try {
+      const res = await eventsAPI.enrolled();
+      const data = res?.data;
+      // Handle null / undefined / non-array responrses gracefully
+      setEnrolledEvents(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to fetch enrolled events:', err);
+      setEnrolledEvents([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    fetchMyEvents();
+    fetchEnrolledEvents();
   }, []);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await fetchMyEvents();
+    await fetchEnrolledEvents();
     setRefreshing(false);
   };
 
   const now = new Date();
-  const filteredEvents = myEvents.filter((e) => {
+
+  // ✅ Filter enrolled events by date for Upcoming / Past tabs
+  const filteredEvents = enrolledEvents.filter((e) => {
     const eventDate = new Date(e.date);
     return activeTab === 'Upcoming' ? eventDate >= now : eventDate < now;
   });
 
+  const getTabCount = (tab) =>
+    enrolledEvents.filter((e) => {
+      const d = new Date(e.date);
+      return tab === 'Upcoming' ? d >= now : d < now;
+    }).length;
+
   const renderHeader = () => (
     <View>
       {/* Top bar */}
-      <View style={[styles.topBar, {paddingTop: insets.top + SPACING.md }]}>
+      <View style={[styles.topBar, { paddingTop: insets.top + SPACING.md }]}>
         <Text style={styles.screenTitle}>My Events</Text>
         <View style={styles.countBadge}>
-          <Text style={styles.countText}>{myEvents.length}</Text>
+          <Text style={styles.countText}>{enrolledEvents.length}</Text>
         </View>
       </View>
 
       {/* Tabs */}
       <View style={styles.tabContainer}>
         {TABS.map((tab) => {
-          const count = myEvents.filter((e) => {
-            const d = new Date(e.date);
-            return tab === 'Upcoming' ? d >= now : d < now;
-          }).length;
+          const count = getTabCount(tab);
           return (
             <TouchableOpacity
               key={tab}
@@ -73,7 +96,7 @@ export default function MyEventsScreenUser({ navigation }) {
     </View>
   );
 
-  if (myEventsLoading && !refreshing) {
+  if (loading && !refreshing) {
     return (
       <View style={styles.container}>
         {renderHeader()}
@@ -85,59 +108,56 @@ export default function MyEventsScreenUser({ navigation }) {
   }
 
   return (
-  <View style={styles.container}>
-    
-    {/* ✅ FIXED HEADER */}
-    {renderHeader()}
+    <View style={styles.container}>
+      {renderHeader()}
 
-    {/* ✅ ONLY LIST SCROLLS */}
-    <FlatList
-      data={filteredEvents}
-      keyExtractor={(item) => String(item.id)}
-      renderItem={({ item }) => (
-        <EventCard
-          event={item}
-          onPress={() => navigation.navigate('EventDetails', { eventId: item.id })}
-        />
-      )}
-      ListEmptyComponent={
-        <EmptyState
-          icon={activeTab === 'Upcoming' ? 'calendar-outline' : 'time-outline'}
-          title={activeTab === 'Upcoming' ? 'No upcoming events' : 'No past events'}
-          subtitle={
-            activeTab === 'Upcoming'
-              ? 'Register for events to see them here.'
-              : "Events you've attended will appear here."
-          }
-          action={
-            activeTab === 'Upcoming' && (
-              <TouchableOpacity
-                style={styles.browseBtn}
-                onPress={() => navigation.navigate('Home')}
-              >
-                <Ionicons name="search-outline" size={16} color={COLORS.white} />
-                <Text style={styles.browseBtnText}>Browse Events</Text>
-              </TouchableOpacity>
-            )
-          }
-        />
-      }
-      contentContainerStyle={styles.list}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={handleRefresh}
-          tintColor={COLORS.primary}
-        />
-      }
-    />
-  </View>
-);
+      <FlatList
+        data={filteredEvents}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={({ item }) => (
+          <EventCard
+            event={item}
+            onPress={() => navigation.navigate('EventDetails', { eventId: item.id })}
+          />
+        )}
+        ListEmptyComponent={
+          <EmptyState
+            icon={activeTab === 'Upcoming' ? 'calendar-outline' : 'time-outline'}
+            title={activeTab === 'Upcoming' ? 'No upcoming events' : 'No past events'}
+            subtitle={
+              activeTab === 'Upcoming'
+                ? 'Register for events to see them here.'
+                : "Events you've attended will appear here."
+            }
+            action={
+              activeTab === 'Upcoming' && (
+                <TouchableOpacity
+                  style={styles.browseBtn}
+                  onPress={() => navigation.navigate('Home')}
+                >
+                  <Ionicons name="search-outline" size={16} color={COLORS.white} />
+                  <Text style={styles.browseBtnText}>Browse Events</Text>
+                </TouchableOpacity>
+              )
+            }
+          />
+        }
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={COLORS.primary}
+          />
+        }
+      />
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.bgPrimary},
+  container: { flex: 1, backgroundColor: COLORS.bgPrimary },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -213,8 +233,6 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
   list: {
-    // padding: SPACING.xl,
-    // paddingTop: SPACING.xl,
     paddingBottom: SPACING.xxxl,
   },
   browseBtn: {
@@ -232,5 +250,3 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
 });
-
-

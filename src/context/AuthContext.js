@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authAPI, getErrorMessage } from '../api/endpoints';
+import client from '../api/client';
 
 export const AuthContext = createContext(null);
 
@@ -10,7 +11,6 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 🔒 Safe storage clear helper (fix for iOS issues)
   const clearStorage = async () => {
     try {
       await AsyncStorage.multiRemove(['token', 'user']);
@@ -38,8 +38,9 @@ export function AuthProvider({ children }) {
         try {
           // Verify token is still valid
           const response = await authAPI.me();
-          const freshUser = response.data?.data || response.data;
+          const freshUser = response.data?.data.user || response.data;
           setUser(freshUser);
+          // console.log(freshUser)
           await AsyncStorage.setItem('user', JSON.stringify(freshUser));
         } catch (err) {
           // Token invalid → clear safely
@@ -72,6 +73,7 @@ export function AuthProvider({ children }) {
 
       setToken(newToken);
       setUser(newUser);
+      // console.log(newUser)
       return { success: true };
     } catch (err) {
       const message = getErrorMessage(err);
@@ -111,10 +113,11 @@ export function AuthProvider({ children }) {
   );
 
   const logout = useCallback(async () => {
-    await clearStorage(); // ✅ fixed
-    setToken(null);
+    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('user');
+    client.defaults.headers.common['Authorization'] = ''; // if applicable
     setUser(null);
-    setError(null);
+    setToken(null);
   }, []);
 
   const clearError = useCallback(() => setError(null), []);

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity,
+  View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,27 +12,35 @@ import { COLORS, SPACING, FONT_SIZE, FONT_WEIGHT, BORDER_RADIUS } from '../const
 // ─── Status config ────────────────────────────────────────────────────────────
 const STATUS_TABS = [
   {
-    key: 'approved',
+    key: 'PUBLISHED',
+    label: 'Published',
+    icon: 'megaphone',
+    color: '#7C3AED',
+    bgColor: '#EDE9FE',
+    dimColor: 'rgba(124,58,237,0.18)',
+  },
+  {
+    key: 'APPROVED',
     label: 'Approved',
     icon: 'checkmark-circle',
-    color: '#16A34A',       // green-600
-    bgColor: '#DCFCE7',     // green-100
+    color: '#16A34A',
+    bgColor: '#DCFCE7',
     dimColor: 'rgba(22,163,74,0.18)',
   },
   {
-    key: 'pending',
+    key: 'PENDING',
     label: 'Pending',
     icon: 'time',
-    color: '#D97706',       // amber-600
-    bgColor: '#FEF3C7',     // amber-100
+    color: '#D97706',
+    bgColor: '#FEF3C7',
     dimColor: 'rgba(217,119,6,0.18)',
   },
   {
-    key: 'rejected',
+    key: 'REJECTED',
     label: 'Rejected',
     icon: 'close-circle',
-    color: '#DC2626',       // red-600
-    bgColor: '#FEE2E2',     // red-100
+    color: '#DC2626',
+    bgColor: '#FEE2E2',
     dimColor: 'rgba(220,38,38,0.18)',
   },
 ];
@@ -41,14 +49,17 @@ const STATUS_TABS = [
 function StatusBanner({ status }) {
   const cfg = STATUS_TABS.find((s) => s.key === status) || STATUS_TABS[0];
   const messages = {
-    approved: 'Your registration is confirmed.',
-    pending:  'Awaiting organiser approval.',
-    rejected: 'Registration was not approved.',
+    PUBLISHED: 'This event is open for registration.',
+    APPROVED:  'Your event has been approved by admin.',
+    PENDING:   'Awaiting admin approval.',
+    REJECTED:  'This event was not approved.',
   };
   return (
     <View style={[bannerStyles.wrap, { backgroundColor: cfg.bgColor }]}>
       <Ionicons name={cfg.icon} size={14} color={cfg.color} />
-      <Text style={[bannerStyles.text, { color: cfg.color }]}>{messages[status]}</Text>
+      <Text style={[bannerStyles.text, { color: cfg.color }]}>
+        {messages[status] ?? 'Status unknown.'}
+      </Text>
     </View>
   );
 }
@@ -73,18 +84,18 @@ const bannerStyles = StyleSheet.create({
 
 // ─── Tab pill ─────────────────────────────────────────────────────────────────
 function TabPill({ config, active, count, onPress }) {
+  const outlineIcon = `${config.icon}-outline`;
   return (
     <TouchableOpacity
       style={[
         tabStyles.pill,
-        active && { backgroundColor: config.color },
-        !active && { backgroundColor: config.dimColor },
+        active ? { backgroundColor: config.color } : { backgroundColor: config.dimColor },
       ]}
       onPress={onPress}
       activeOpacity={0.8}
     >
       <Ionicons
-        name={active ? config.icon : `${config.icon}-outline`}
+        name={active ? config.icon : outlineIcon}
         size={14}
         color={active ? '#fff' : config.color}
       />
@@ -92,7 +103,10 @@ function TabPill({ config, active, count, onPress }) {
         {config.label}
       </Text>
       {count > 0 && (
-        <View style={[tabStyles.badge, { backgroundColor: active ? 'rgba(255,255,255,0.3)' : config.bgColor }]}>
+        <View style={[
+          tabStyles.badge,
+          { backgroundColor: active ? 'rgba(255,255,255,0.3)' : config.bgColor },
+        ]}>
           <Text style={[tabStyles.badgeText, { color: active ? '#fff' : config.color }]}>
             {count}
           </Text>
@@ -129,65 +143,27 @@ const tabStyles = StyleSheet.create({
   },
 });
 
-// ─── Summary strip ────────────────────────────────────────────────────────────
-// function SummaryStrip({ events }) {
-//   const counts = {
-//     approved: events.filter((e) => e.status === 'approved').length,
-//     pending:  events.filter((e) => e.status === 'pending').length,
-//     rejected: events.filter((e) => e.status === 'rejected').length,
-//   };
-//   return (
-//     <View style={stripStyles.row}>
-//       {STATUS_TABS.map((s) => (
-//         <View key={s.key} style={[stripStyles.cell, { backgroundColor: s.bgColor }]}>
-//           <Text style={[stripStyles.num, { color: s.color }]}>{counts[s.key]}</Text>
-//           <Text style={[stripStyles.lbl, { color: s.color }]}>{s.label}</Text>
-//         </View>
-//       ))}
-//     </View>
-//   );
-// }
-
-const stripStyles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    gap: SPACING.sm,
-    paddingHorizontal: SPACING.xl,
-    paddingVertical: SPACING.md,
-  },
-  cell: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    gap: 2,
-  },
-  num: {
-    fontSize: FONT_SIZE.xl,
-    fontWeight: FONT_WEIGHT.bold,
-  },
-  lbl: {
-    fontSize: FONT_SIZE.xs,
-    fontWeight: FONT_WEIGHT.semibold,
-  },
-});
-
-// ─── Empty state messages per status ─────────────────────────────────────────
+// ─── Empty state config ───────────────────────────────────────────────────────
 const EMPTY_CFG = {
-  approved: {
+  PUBLISHED: {
+    icon: 'megaphone-outline',
+    title: 'No published events',
+    subtitle: 'Events open for registration will appear here.',
+  },
+  APPROVED: {
     icon: 'checkmark-circle-outline',
     title: 'No approved events',
-    subtitle: 'Once your registrations are approved, they\'ll show up here.',
+    subtitle: 'Events approved by admin will show up here.',
   },
-  pending: {
+  PENDING: {
     icon: 'time-outline',
     title: 'No pending requests',
-    subtitle: 'Events awaiting organiser approval will appear here.',
+    subtitle: 'Events awaiting admin approval will appear here.',
   },
-  rejected: {
+  REJECTED: {
     icon: 'close-circle-outline',
     title: 'No rejected events',
-    subtitle: 'Registrations that weren\'t approved will appear here.',
+    subtitle: "Events that weren't approved will appear here.",
   },
 };
 
@@ -196,7 +172,7 @@ export default function MyEventsScreenOrg({ navigation }) {
   const insets = useSafeAreaInsets();
   const { myEvents, myEventsLoading, fetchMyEvents } = useEvents();
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState('approved');
+  const [activeTab, setActiveTab] = useState('PUBLISHED');
 
   useEffect(() => { fetchMyEvents(); }, []);
 
@@ -209,7 +185,7 @@ export default function MyEventsScreenOrg({ navigation }) {
   const filteredEvents = myEvents.filter((e) => e.status === activeTab);
   const activeCfg = STATUS_TABS.find((s) => s.key === activeTab);
 
-  const renderHeader = () => (
+  const Header = () => (
     <View>
       {/* ── Top bar ── */}
       <View style={[styles.topBar, { paddingTop: insets.top + SPACING.md }]}>
@@ -222,11 +198,12 @@ export default function MyEventsScreenOrg({ navigation }) {
         </View>
       </View>
 
-      {/* ── Summary strip ── */}
-      {/* <SummaryStrip events={myEvents} /> */}
-
       {/* ── Status tabs ── */}
-      <View style={styles.tabRow}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.tabRow}
+      >
         {STATUS_TABS.map((cfg) => (
           <TabPill
             key={cfg.key}
@@ -236,7 +213,7 @@ export default function MyEventsScreenOrg({ navigation }) {
             onPress={() => setActiveTab(cfg.key)}
           />
         ))}
-      </View>
+      </ScrollView>
 
       {/* ── Active-tab heading ── */}
       <View style={[styles.tabHeading, { borderLeftColor: activeCfg.color }]}>
@@ -254,7 +231,7 @@ export default function MyEventsScreenOrg({ navigation }) {
   if (myEventsLoading && !refreshing) {
     return (
       <View style={styles.container}>
-        {renderHeader()}
+        <Header />
         <View style={styles.listPad}>
           {[1, 2, 3].map((i) => <EventCardSkeleton key={i} />)}
         </View>
@@ -264,21 +241,18 @@ export default function MyEventsScreenOrg({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {renderHeader()}
+      <Header />
       <FlatList
         data={filteredEvents}
         keyExtractor={(item) => String(item.id)}
-        // ListHeaderComponent={renderHeader}
         renderItem={({ item }) => (
           <View>
-            {/* Status banner injected above each card */}
             <StatusBanner status={item.status} />
             <View style={styles.cardWrap}>
               <EventCard
                 event={item}
                 onPress={() => navigation.navigate('EventDetails', { eventId: item.id })}
               />
-              {/* Coloured left accent bar */}
               <View style={[styles.cardAccent, { backgroundColor: activeCfg.color }]} />
             </View>
           </View>
@@ -291,7 +265,7 @@ export default function MyEventsScreenOrg({ navigation }) {
               title={cfg.title}
               subtitle={cfg.subtitle}
               action={
-                activeTab === 'approved' && (
+                activeTab === 'PUBLISHED' ? (
                   <TouchableOpacity
                     style={[styles.browseBtn, { backgroundColor: activeCfg.color }]}
                     onPress={() => navigation.navigate('Home')}
@@ -299,12 +273,15 @@ export default function MyEventsScreenOrg({ navigation }) {
                     <Ionicons name="search-outline" size={16} color="#fff" />
                     <Text style={styles.browseBtnText}>Browse Events</Text>
                   </TouchableOpacity>
-                )
+                ) : null
               }
             />
           );
         }}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          filteredEvents.length === 0 && styles.listContentEmpty,
+        ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -322,7 +299,6 @@ export default function MyEventsScreenOrg({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bgPrimary },
 
-  // ── Header ──
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -355,16 +331,14 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
 
-  // ── Tabs ──
   tabRow: {
     flexDirection: 'row',
     gap: SPACING.sm,
     paddingHorizontal: SPACING.xl,
-    paddingBottom: SPACING.md,
-    paddingTop: SPACING.md
+    paddingVertical: SPACING.md,
+    alignItems: 'center',
   },
 
-  // ── Tab heading ──
   tabHeading: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -383,7 +357,6 @@ const styles = StyleSheet.create({
     fontWeight: FONT_WEIGHT.medium,
   },
 
-  // ── Card ──
   cardWrap: {
     marginHorizontal: SPACING.xl,
     marginTop: SPACING.sm,
@@ -402,9 +375,9 @@ const styles = StyleSheet.create({
   },
 
   listContent: { paddingBottom: SPACING.xxxl },
+  listContentEmpty: { flexGrow: 1 },
   listPad: { padding: SPACING.xl },
 
-  // ── Browse btn ──
   browseBtn: {
     flexDirection: 'row',
     alignItems: 'center',

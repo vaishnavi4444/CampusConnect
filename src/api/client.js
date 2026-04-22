@@ -1,6 +1,9 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+
 const client = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
@@ -9,7 +12,6 @@ const client = axios.create({
   },
 });
 
-// Request interceptor - attach JWT token
 client.interceptors.request.use(
   async (config) => {
     try {
@@ -25,7 +27,6 @@ client.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor - handle 401
 client.interceptors.response.use(
   (response) => response,
   async (error) => {

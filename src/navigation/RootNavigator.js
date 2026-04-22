@@ -9,7 +9,8 @@ import EventDetailsScreen from '../screens/EventDetailsScreen';
 import CreateEventScreen from '../screens/CreateEventScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import QRScanEventScreen from '../screens/QRScanEventScreen';
-
+import TicketScreen from '../screens/TicketScreen';
+import EventAnalyticScren from '../screens/EventAnalyticScreen'
 const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
@@ -47,7 +48,7 @@ export default function RootNavigator() {
             component={CreateEventScreen}
             options={{ animation: 'slide_from_bottom' }}
           />
-          
+
           <Stack.Screen
             name="Notifications"
             component={NotificationsScreen}
@@ -58,6 +59,18 @@ export default function RootNavigator() {
             component={QRScanEventScreen}
             options={{ animation: 'slide_from_right' }}
           />
+          <Stack.Screen
+            name="Ticket"
+            component={TicketScreen}
+            options={{ animation: 'slide_from_bottom' }}
+
+          />
+          <Stack.Screen name="EventAnalytics"
+            component={EventAnalyticScren}
+            options={{ animation: 'slide_from_bottom' }}
+          />
+
+
         </>
       )}
     </Stack.Navigator>

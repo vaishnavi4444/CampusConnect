@@ -34,7 +34,7 @@ function SettingRow({ icon, label, value, onPress, danger, chevron = true }) {
 export default function ProfileScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const { user, logout, isOrganizer } = useAuth();
-  const { myEvents } = useEvents();
+  const { myEvents, clearAll } = useEvents(); // ✅ clearAll resets event state
 
   const handleLogout = () => {
     Alert.alert(
@@ -42,12 +42,19 @@ export default function ProfileScreen({ navigation }) {
       'Are you sure you want to sign out?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign Out', style: 'destructive', onPress: logout },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            clearAll();   // ✅ wipe event context before auth logout
+            await logout(); // ✅ clears token + auth state
+          },
+        },
       ]
     );
   };
 
-  const upcomingCount = myEvents.filter((e) => new Date(e.date) >= new Date()).length;
+  const upcomingCount = myEvents.filter((e) => new Date(e.date) >= Date.now()).length;
 
   return (
     <View style={styles.container}>
@@ -57,7 +64,6 @@ export default function ProfileScreen({ navigation }) {
           colors={[COLORS.primary, COLORS.primaryLight]}
           style={[styles.header, { paddingTop: insets.top + SPACING.xl }]}
         >
-          {/* Avatar */}
           <View style={styles.avatarContainer}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>{getInitials(user?.name)}</Text>
@@ -77,7 +83,6 @@ export default function ProfileScreen({ navigation }) {
           <Text style={styles.userName}>{user?.name || 'User'}</Text>
           <Text style={styles.userEmail}>{user?.email || ''}</Text>
 
-          {/* Stats */}
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{myEvents.length}</Text>
@@ -96,34 +101,16 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </LinearGradient>
 
-        {/* Content */}
         <View style={styles.content}>
-          {/* Account section */}
           <Text style={styles.sectionLabel}>Account</Text>
           <View style={styles.card}>
-            <SettingRow
-              icon="person-outline"
-              label="Full Name"
-              value={user?.name}
-              chevron={false}
-            />
+            <SettingRow icon="person-outline" label="Full Name" value={user?.name} chevron={false} />
             <View style={styles.rowDivider} />
-            <SettingRow
-              icon="mail-outline"
-              label="Email Address"
-              value={user?.email}
-              chevron={false}
-            />
+            <SettingRow icon="mail-outline" label="Email Address" value={user?.email} chevron={false} />
             <View style={styles.rowDivider} />
-            <SettingRow
-              icon="shield-checkmark-outline"
-              label="Account Role"
-              value={user?.role || 'STUDENT'}
-              chevron={false}
-            />
+            <SettingRow icon="shield-checkmark-outline" label="Account Role" value={user?.role || 'STUDENT'} chevron={false} />
           </View>
 
-          {/* Activity */}
           <Text style={styles.sectionLabel}>Activity</Text>
           <View style={styles.card}>
             <SettingRow
@@ -150,7 +137,6 @@ export default function ProfileScreen({ navigation }) {
             )}
           </View>
 
-          {/* App */}
           <Text style={styles.sectionLabel}>App</Text>
           <View style={styles.card}>
             <SettingRow
@@ -161,7 +147,6 @@ export default function ProfileScreen({ navigation }) {
             />
           </View>
 
-          {/* Sign out */}
           <View style={styles.card}>
             <SettingRow
               icon="log-out-outline"
@@ -172,9 +157,7 @@ export default function ProfileScreen({ navigation }) {
             />
           </View>
 
-          {/* Build info */}
           <Text style={styles.buildInfo}>Campus Events — Built for your campus community</Text>
-
           <View style={{ height: 40 }} />
         </View>
       </ScrollView>
@@ -189,10 +172,7 @@ const styles = StyleSheet.create({
     paddingBottom: SPACING.xxl,
     paddingHorizontal: SPACING.xl,
   },
-  avatarContainer: {
-    alignItems: 'center',
-    marginBottom: SPACING.md,
-  },
+  avatarContainer: { alignItems: 'center', marginBottom: SPACING.md },
   avatar: {
     width: 88,
     height: 88,
@@ -218,28 +198,11 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: BORDER_RADIUS.full,
   },
-  roleBadgeOrganizer: {
-    backgroundColor: COLORS.accent,
-  },
-  roleText: {
-    fontSize: FONT_SIZE.xs,
-    fontWeight: FONT_WEIGHT.bold,
-    color: COLORS.white,
-  },
-  roleTextOrganizer: {
-    color: COLORS.primary,
-  },
-  userName: {
-    fontSize: FONT_SIZE.xxl,
-    fontWeight: FONT_WEIGHT.bold,
-    color: COLORS.white,
-    marginBottom: SPACING.xs,
-  },
-  userEmail: {
-    fontSize: FONT_SIZE.sm,
-    color: 'rgba(255,255,255,0.65)',
-    marginBottom: SPACING.xl,
-  },
+  roleBadgeOrganizer: { backgroundColor: COLORS.accent },
+  roleText: { fontSize: FONT_SIZE.xs, fontWeight: FONT_WEIGHT.bold, color: COLORS.white },
+  roleTextOrganizer: { color: COLORS.primary },
+  userName: { fontSize: FONT_SIZE.xxl, fontWeight: FONT_WEIGHT.bold, color: COLORS.white, marginBottom: SPACING.xs },
+  userEmail: { fontSize: FONT_SIZE.sm, color: 'rgba(255,255,255,0.65)', marginBottom: SPACING.xl },
   statsRow: {
     flexDirection: 'row',
     backgroundColor: 'rgba(255,255,255,0.12)',
@@ -248,26 +211,10 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   statItem: { flex: 1, alignItems: 'center' },
-  statValue: {
-    fontSize: FONT_SIZE.xxl,
-    fontWeight: FONT_WEIGHT.bold,
-    color: COLORS.white,
-  },
-  statLabel: {
-    fontSize: FONT_SIZE.xs,
-    color: 'rgba(255,255,255,0.65)',
-    marginTop: 2,
-  },
-  statDivider: {
-    width: 1,
-    height: '80%',
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignSelf: 'center',
-  },
-  content: {
-    padding: SPACING.xl,
-    marginTop: -12,
-  },
+  statValue: { fontSize: FONT_SIZE.xxl, fontWeight: FONT_WEIGHT.bold, color: COLORS.white },
+  statLabel: { fontSize: FONT_SIZE.xs, color: 'rgba(255,255,255,0.65)', marginTop: 2 },
+  statDivider: { width: 1, height: '80%', backgroundColor: 'rgba(255,255,255,0.2)', alignSelf: 'center' },
+  content: { padding: SPACING.xl, marginTop: -12 },
   sectionLabel: {
     fontSize: FONT_SIZE.xs,
     fontWeight: FONT_WEIGHT.bold,
@@ -278,12 +225,7 @@ const styles = StyleSheet.create({
     marginTop: SPACING.lg,
     paddingLeft: SPACING.sm,
   },
-  card: {
-    backgroundColor: COLORS.white,
-    borderRadius: BORDER_RADIUS.xl,
-    overflow: 'hidden',
-    ...SHADOWS.sm,
-  },
+  card: { backgroundColor: COLORS.white, borderRadius: BORDER_RADIUS.xl, overflow: 'hidden', ...SHADOWS.sm },
   settingRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -292,38 +234,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
   },
   settingIcon: {
-    width: 38,
-    height: 38,
+    width: 38, height: 38,
     borderRadius: BORDER_RADIUS.sm,
     backgroundColor: '#EEF2FF',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  settingIconDanger: {
-    backgroundColor: COLORS.errorLight,
-  },
+  settingIconDanger: { backgroundColor: COLORS.errorLight },
   settingContent: { flex: 1 },
-  settingLabel: {
-    fontSize: FONT_SIZE.md,
-    fontWeight: FONT_WEIGHT.medium,
-    color: COLORS.textPrimary,
-  },
+  settingLabel: { fontSize: FONT_SIZE.md, fontWeight: FONT_WEIGHT.medium, color: COLORS.textPrimary },
   settingLabelDanger: { color: COLORS.error },
-  settingValue: {
-    fontSize: FONT_SIZE.sm,
-    color: COLORS.textMuted,
-    marginTop: 1,
-  },
-  rowDivider: {
-    height: 1,
-    backgroundColor: COLORS.gray100,
-    marginLeft: 54 + SPACING.md,
-  },
-  buildInfo: {
-    textAlign: 'center',
-    fontSize: FONT_SIZE.xs,
-    color: COLORS.textMuted,
-    marginTop: SPACING.xl,
-    fontStyle: 'italic',
-  },
+  settingValue: { fontSize: FONT_SIZE.sm, color: COLORS.textMuted, marginTop: 1 },
+  rowDivider: { height: 1, backgroundColor: COLORS.gray100, marginLeft: 54 + SPACING.md },
+  buildInfo: { textAlign: 'center', fontSize: FONT_SIZE.xs, color: COLORS.textMuted, marginTop: SPACING.xl, fontStyle: 'italic' },
 });

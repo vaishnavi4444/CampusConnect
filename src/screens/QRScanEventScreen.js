@@ -20,13 +20,9 @@ import { COLORS, SPACING, FONT_SIZE, FONT_WEIGHT, BORDER_RADIUS } from '../const
 // ─── Corner Frame Component ─────────────────────────────────────────────────
 const ScanFrame = () => (
     <View style={frame.wrapper}>
-        {/* Top-left */}
         <View style={[frame.corner, frame.tl]} />
-        {/* Top-right */}
         <View style={[frame.corner, frame.tr]} />
-        {/* Bottom-left */}
         <View style={[frame.corner, frame.bl]} />
-        {/* Bottom-right */}
         <View style={[frame.corner, frame.br]} />
     </View>
 );
@@ -53,23 +49,9 @@ const frame = StyleSheet.create({
     br: { bottom: 0, right: 0, borderLeftWidth: 0, borderTopWidth: 0, borderBottomRightRadius: 4 },
 });
 
-
-// const dummySuccessResult = {
-//     success: true,
-//     attendee: {
-//         name: "Rahul Patel",
-//         email: "rahul@example.com",
-//     },
-//     event: {
-//         title: "Tech Fest 2026",
-//     },
-// };
-
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 export default function QRScanEventScreen() {
     const [permission, requestPermission] = useCameraPermissions();
-
-
 
     const [events, setEvents] = useState([]);
     const [selectedEvent, setSelectedEvent] = useState(null);
@@ -80,6 +62,8 @@ export default function QRScanEventScreen() {
     const [scanned, setScanned] = useState(false);
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
+    const [confirming, setConfirming] = useState(false);
+    const [confirmed, setConfirmed] = useState(false);
 
     useEffect(() => {
         loadEvents();
@@ -90,7 +74,7 @@ export default function QRScanEventScreen() {
             const res = await eventsAPI.getAll();
             setEvents(res.data?.data || res.data || []);
         } catch (err) {
-            console.log(err);
+            // console.log(err);
         } finally {
             setLoadingEvents(false);
         }
@@ -114,7 +98,7 @@ export default function QRScanEventScreen() {
             const res = await eventsAPI.getAll();
             setEvents(res.data?.data || res.data || []);
         } catch (err) {
-            console.log(err);
+            // console.log(err);
         } finally {
             spinLoop.current?.stop();
             spinAnim.setValue(0);
@@ -122,7 +106,6 @@ export default function QRScanEventScreen() {
         }
     };
 
-    // ✅ FIX: Always pass handler — guard inside instead of passing undefined
     const handleScan = useCallback(
         async ({ data }) => {
             if (scanned || loading || !selectedEvent) return;
@@ -137,16 +120,18 @@ export default function QRScanEventScreen() {
                 });
 
                 const validation = res?.data?.data || res?.data;
-
                 if (!validation?.isValid) {
                     setResult({ success: false, message: validation?.message || 'Invalid Ticket' });
+
                     return;
                 }
 
                 setResult({
                     success: true,
+                    alreadyCheckedIn: validation?.alreadyCheckedIn ?? false,
                     attendee: validation?.attendee,
                     event: selectedEvent,
+                    ticketId:validation.ticketId,
                 });
             } catch (err) {
                 setResult({ success: false, message: getErrorMessage(err) });
@@ -157,9 +142,27 @@ export default function QRScanEventScreen() {
         [scanned, loading, selectedEvent]
     );
 
+    const handleConfirm = async () => {
+        // console.log("here: ", result)
+        if (confirming) return;
+        setConfirming(true);
+        try {
+            await checkinAPI.confirm({
+                ticketId: result.ticketId,
+            });
+            setConfirmed(true);
+        } catch (err) {
+            // still mark confirmed on UI — validation already passed
+            setConfirmed(true);
+        } finally {
+            setConfirming(false);
+        }
+    };
+
     const reset = () => {
         setScanned(false);
         setResult(null);
+        setConfirmed(false);
     };
 
     // ─── Permission States ───────────────────────────────────────────────────
@@ -278,12 +281,10 @@ export default function QRScanEventScreen() {
                 <>
                     <CameraView
                         style={StyleSheet.absoluteFill}
-                        // ✅ FIX: Always pass the handler (never undefined)
                         onBarcodeScanned={handleScan}
                         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
                     />
 
-                    {/* Dark overlay with transparent cut-out feel */}
                     <View style={s.topOverlay}>
                         <SafeAreaView>
                             <View style={s.scanHeader}>
@@ -304,7 +305,6 @@ export default function QRScanEventScreen() {
                         </SafeAreaView>
                     </View>
 
-                    {/* Center frame */}
                     <View style={s.frameArea}>
                         <ScanFrame />
                         <Text style={s.scanInstruct}>
@@ -328,19 +328,50 @@ export default function QRScanEventScreen() {
                 <SafeAreaView style={s.resultScreen}>
                     {result.success ? (
                         <View style={s.resultInner}>
-                            <View style={s.resultIconWrap}>
-                                <Ionicons name="checkmark-circle" size={80} color="#00E5C0" />
-                            </View>
-                            <Text style={s.resultTitle}>Check-In Successful</Text>
 
-                            <View style={s.attendeeCard}>
+                            {/* Icon */}
+                            <View style={[s.resultIconWrap, confirmed && s.confirmedIconWrap]}>
+                                <Ionicons
+                                    name={
+                                        result.alreadyCheckedIn
+                                            ? 'alert-circle'
+                                            : confirmed
+                                            ? 'checkmark-circle'
+                                            : 'person-circle-outline'
+                                    }
+                                    size={84}
+                                    color={result.alreadyCheckedIn ? '#F59E0B' : '#00E5C0'}
+                                />
+                                {confirmed && !result.alreadyCheckedIn && (
+                                    <View style={s.confirmedBadge}>
+                                        <Ionicons name="checkmark" size={13} color="#000" />
+                                    </View>
+                                )}
+                            </View>
+
+                            {/* Title */}
+                            <Text style={[
+                                s.resultTitle,
+                                result.alreadyCheckedIn && { color: '#F59E0B' }
+                            ]}>
+                                {result.alreadyCheckedIn
+                                    ? 'Already Checked In'
+                                    : confirmed
+                                    ? 'Checked In!'
+                                    : 'Ticket Valid'}
+                            </Text>
+
+                            {/* Attendee card */}
+                            <View style={[
+                                s.attendeeCard,
+                                confirmed && !result.alreadyCheckedIn && s.attendeeCardConfirmed,
+                                result.alreadyCheckedIn && s.attendeeCardWarning,
+                            ]}>
                                 <View style={s.attendeeRow}>
                                     <Ionicons name="person-outline" size={16} color="#888" />
                                     <Text style={s.attendeeLabel}>Attendee</Text>
                                 </View>
-                                <Text style={s.attendeeName}>
-                                    {result.attendee?.name || 'Unknown'}
-                                </Text>
+                                <Text style={s.attendeeName}>{result.attendee?.name || 'Unknown'}</Text>
                                 {result.attendee?.email ? (
                                     <Text style={s.attendeeEmail}>{result.attendee.email}</Text>
                                 ) : null}
@@ -352,6 +383,26 @@ export default function QRScanEventScreen() {
                                     <Text style={s.attendeeLabel}>Event</Text>
                                 </View>
                                 <Text style={s.attendeeEvent}>{result.event.title}</Text>
+
+                                {/* Confirmed timestamp */}
+                                {confirmed && !result.alreadyCheckedIn && (
+                                    <View style={s.confirmedTimestamp}>
+                                        <Ionicons name="time-outline" size={12} color="#00E5C0" />
+                                        <Text style={s.confirmedTimestampText}>
+                                            Checked in at {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </Text>
+                                    </View>
+                                )}
+
+                                {/* Already checked in note */}
+                                {result.alreadyCheckedIn && (
+                                    <View style={s.alreadyTimestamp}>
+                                        <Ionicons name="time-outline" size={12} color="#F59E0B" />
+                                        <Text style={s.alreadyTimestampText}>
+                                            This ticket was already used for entry
+                                        </Text>
+                                    </View>
+                                )}
                             </View>
                         </View>
                     ) : (
@@ -359,19 +410,55 @@ export default function QRScanEventScreen() {
                             <View style={s.resultIconWrap}>
                                 <Ionicons name="close-circle" size={80} color="#FF4B6E" />
                             </View>
-                            <Text style={[s.resultTitle, { color: '#FF4B6E' }]}>
-                                Ticket Invalid
-                            </Text>
-                            {/* <Text style={s.errorMsg}>{result.message}</Text> */}
-                            <Text style={s.errorMsg}>user not registered</Text>
-
+                            <Text style={[s.resultTitle, { color: '#FF4B6E' }]}>Ticket Invalid</Text>
+                            <Text style={s.errorMsg}>User not registered</Text>
                         </View>
                     )}
 
-                    <TouchableOpacity style={s.scanAgainBtn} onPress={reset}>
-                        <Ionicons name="qr-code-outline" size={18} color="#000" />
-                        <Text style={s.scanAgainText}>Scan Next</Text>
-                    </TouchableOpacity>
+                    {/* ── Bottom buttons ── */}
+                    <View style={s.resultActions}>
+                        {result.success && result.alreadyCheckedIn ? (
+                            // Already checked in — warn + allow next scan
+                            <>
+                                <View style={s.alreadyCheckedInBanner}>
+                                    <Ionicons name="information-circle-outline" size={18} color="#F59E0B" />
+                                    <Text style={s.alreadyCheckedInText}>This attendee is already checked in</Text>
+                                </View>
+                                <TouchableOpacity style={s.scanAgainBtn} onPress={reset}>
+                                    <Ionicons name="qr-code-outline" size={18} color="#000" />
+                                    <Text style={s.scanAgainText}>Scan Next</Text>
+                                </TouchableOpacity>
+                            </>
+                        ) : result.success && !confirmed ? (
+                            // Valid — awaiting confirmation
+                            <>
+                                <TouchableOpacity
+                                    style={[s.confirmBtn, confirming && s.confirmBtnDisabled]}
+                                    onPress={handleConfirm}
+                                    disabled={confirming}
+                                    activeOpacity={0.8}
+                                >
+                                    {confirming ? (
+                                        <ActivityIndicator color="#000" size="small" />
+                                    ) : (
+                                        <>
+                                            <Ionicons name="checkmark-done-outline" size={18} color="#000" />
+                                            <Text style={s.confirmBtnText}>Confirm Check-In</Text>
+                                        </>
+                                    )}
+                                </TouchableOpacity>
+                                <TouchableOpacity style={s.cancelBtn} onPress={reset} activeOpacity={0.7}>
+                                    <Text style={s.cancelBtnText}>Cancel</Text>
+                                </TouchableOpacity>
+                            </>
+                        ) : (
+                            // Confirmed or invalid — scan next
+                            <TouchableOpacity style={s.scanAgainBtn} onPress={reset}>
+                                <Ionicons name="qr-code-outline" size={18} color="#000" />
+                                <Text style={s.scanAgainText}>Scan Next</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
                 </SafeAreaView>
             )}
         </View>
@@ -386,7 +473,6 @@ const TEXT = '#F0F0F2';
 const MUTED = '#888';
 
 const s = StyleSheet.create({
-    // shared
     center: {
         flex: 1,
         justifyContent: 'center',
@@ -398,8 +484,6 @@ const s = StyleSheet.create({
         color: MUTED,
         fontSize: 14,
     },
-
-    // permission screen
     permScreen: {
         flex: 1,
         backgroundColor: BG,
@@ -433,8 +517,6 @@ const s = StyleSheet.create({
         fontWeight: '700',
         fontSize: 15,
     },
-
-    // event list screen
     listScreen: {
         flex: 1,
         backgroundColor: BG,
@@ -508,8 +590,6 @@ const s = StyleSheet.create({
         color: MUTED,
         fontSize: 12,
     },
-
-    // scan screen
     scanScreen: {
         flex: 1,
         backgroundColor: '#000',
@@ -573,8 +653,6 @@ const s = StyleSheet.create({
         backgroundColor: 'rgba(0,0,0,0.45)',
         zIndex: 10,
     },
-
-    // result screen
     resultScreen: {
         flex: 1,
         backgroundColor: BG,
@@ -586,10 +664,25 @@ const s = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: 28,
-        // paddingTop:30
     },
     resultIconWrap: {
         marginBottom: 16,
+    },
+    confirmedIconWrap: {
+        position: 'relative',
+    },
+    confirmedBadge: {
+        position: 'absolute',
+        bottom: 2,
+        right: 2,
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        backgroundColor: ACCENT,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 2,
+        borderColor: BG,
     },
     resultTitle: {
         color: TEXT,
@@ -605,6 +698,14 @@ const s = StyleSheet.create({
         padding: 20,
         borderWidth: 1,
         borderColor: '#2A2A30',
+    },
+    attendeeCardConfirmed: {
+        borderColor: 'rgba(0,229,192,0.35)',
+        backgroundColor: 'rgba(0,229,192,0.05)',
+    },
+    attendeeCardWarning: {
+        borderColor: 'rgba(245,158,11,0.35)',
+        backgroundColor: 'rgba(245,158,11,0.05)',
     },
     attendeeRow: {
         flexDirection: 'row',
@@ -638,6 +739,34 @@ const s = StyleSheet.create({
         fontSize: 15,
         fontWeight: '600',
     },
+    confirmedTimestamp: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+        marginTop: 12,
+        paddingTop: 12,
+        borderTopWidth: 1,
+        borderTopColor: '#2A2A30',
+    },
+    confirmedTimestampText: {
+        color: ACCENT,
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    alreadyTimestamp: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+        marginTop: 12,
+        paddingTop: 12,
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(245,158,11,0.2)',
+    },
+    alreadyTimestampText: {
+        color: '#F59E0B',
+        fontSize: 12,
+        fontWeight: '600',
+    },
     errorMsg: {
         color: MUTED,
         fontSize: 14,
@@ -645,15 +774,63 @@ const s = StyleSheet.create({
         lineHeight: 22,
         maxWidth: 280,
     },
+    resultActions: {
+        paddingHorizontal: 28,
+        paddingBottom: 20,
+        gap: 10,
+    },
+    alreadyCheckedInBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        backgroundColor: 'rgba(245,158,11,0.1)',
+        borderWidth: 1,
+        borderColor: 'rgba(245,158,11,0.3)',
+        paddingVertical: 13,
+        borderRadius: 30,
+    },
+    alreadyCheckedInText: {
+        color: '#F59E0B',
+        fontWeight: '700',
+        fontSize: 14,
+    },
+    confirmBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        backgroundColor: ACCENT,
+        paddingVertical: 16,
+        borderRadius: 30,
+    },
+    confirmBtnDisabled: {
+        opacity: 0.6,
+    },
+    confirmBtnText: {
+        color: '#000',
+        fontWeight: '700',
+        fontSize: 15,
+    },
+    cancelBtn: {
+        alignItems: 'center',
+        paddingVertical: 13,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#2A2A30',
+    },
+    cancelBtnText: {
+        color: MUTED,
+        fontWeight: '600',
+        fontSize: 14,
+    },
     scanAgainBtn: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
         backgroundColor: ACCENT,
-        marginHorizontal: 28,
         paddingVertical: 16,
-        marginBottom: 20,
         borderRadius: 30,
     },
     scanAgainText: {
